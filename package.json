@@ -1,0 +1,56 @@
+{
+  "name": "card-ui-floating-window",
+  "version": "1.0.0",
+  "description": "Windows floating quota monitor for codex info API.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/dev.js",
+    "dev": "node scripts/dev.js",
+    "verify": "node scripts/verify.js",
+    "build": "vite build",
+    "electron": "node scripts/start-electron.js",
+    "pack": "npm run build && electron-builder --win portable",
+    "dist": "npm run build && electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.ylsagi.codex.quota.floating",
+    "productName": "Codex 用量悬浮窗",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "asar": true,
+    "files": [
+      "main.js",
+      "preload.js",
+      "assets/**/*",
+      "src/main/**/*",
+      "renderer-dist/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "assets/logo2.png",
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10",
+    "vite-plugin-solid": "^2.11.12"
+  },
+  "dependencies": {
+    "solid-js": "^1.9.12"
+  }
+}
