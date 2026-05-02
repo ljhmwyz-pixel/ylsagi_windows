@@ -154,7 +154,7 @@ async function refreshTrayMenu(setAlwaysOnTop) {
 
 function buildTray(setAlwaysOnTop) {
   tray = new Tray(createTrayIcon());
-  tray.setToolTip('Codex');
+  tray.setToolTip('Codex 用量悬浮窗');
   refreshTrayMenu(setAlwaysOnTop);
 
   tray.on('click', () => {

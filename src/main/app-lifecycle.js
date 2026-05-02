@@ -16,7 +16,7 @@ function configureProcessGuards() {
 }
 
 function configureAppIdentity() {
-  app.setName('Codex');
+  app.setName('Codex 用量悬浮窗');
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.ylsagi.codex.quota.floating');
   }
