@@ -21,7 +21,7 @@ export function BubbleApp() {
   const [dockPreview, setDockPreview] = createSignal<DockPreview>({ active: false, edge: null });
 
   const usedPercent = () => Math.min(100, Math.max(0, store.today().percent));
-  const progressAngle = () => `${usedPercent() * 3.6}deg`;
+  const progressOffset = () => `${100 - usedPercent()}`;
   const edgeClass = () => (dockPreview().active && dockPreview().edge ? `dock-${dockPreview().edge}` : '');
   const remaining = () => formatCompactNumber(store.today().usage.remaining_quota);
   const requestCount = () => formatNumber(store.today().usage.request_count);
@@ -158,12 +158,24 @@ export function BubbleApp() {
         type="button"
         tabindex="-1"
         aria-label={buttonLabel()}
-        style={`--progress-angle: ${progressAngle()};`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
       >
+        <svg class="capsule-ring" viewBox="0 0 186 56" aria-hidden="true">
+          <rect class="capsule-ring-track" x="1.25" y="1.25" width="183.5" height="53.5" rx="26.75" pathLength="100" />
+          <rect
+            class="capsule-ring-value"
+            x="1.25"
+            y="1.25"
+            width="183.5"
+            height="53.5"
+            rx="26.75"
+            pathLength="100"
+            style={{ 'stroke-dashoffset': progressOffset() }}
+          />
+        </svg>
         <span class="capsule-mark" aria-hidden="true">
           <span />
         </span>

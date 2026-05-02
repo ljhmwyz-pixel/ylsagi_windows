@@ -35,6 +35,7 @@ for (const file of jsFiles(path.join(root, 'src', 'main'))) {
   run(path.relative(root, file), 'node', ['--check', file]);
 }
 
+run('Unit tests', 'node', ['scripts/test-main.js']);
 run('TypeScript', pnpmCommand, ['exec', 'tsc', '--noEmit']);
 run('Vite production build', pnpmCommand, ['run', 'build']);
 

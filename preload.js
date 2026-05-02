@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('floatingApi', {
   showBubbleMenu: () => ipcRenderer.invoke('window:show-bubble-menu'),
   openLogs: () => ipcRenderer.invoke('app:open-logs'),
   openSettingsDir: () => ipcRenderer.invoke('app:open-settings-dir'),
+  copyDiagnostics: () => ipcRenderer.invoke('app:copy-diagnostics'),
   resetPlacement: () => ipcRenderer.invoke('window:reset-placement'),
   onOpenSettings: (callback) => {
     ipcRenderer.on('open-settings', callback);

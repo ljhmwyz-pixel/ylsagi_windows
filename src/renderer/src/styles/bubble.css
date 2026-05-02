@@ -62,34 +62,10 @@
   user-select: none;
   transform: translateZ(0);
   backface-visibility: hidden;
-  --progress-angle: 0deg;
   transition:
     box-shadow 160ms ease,
     filter 160ms ease,
     transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bubble-view::before {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  padding: 1.25px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from -90deg,
-    color-mix(in srgb, var(--risk) 90%, #ffffff 8%) 0 var(--progress-angle),
-    rgba(4, 10, 12, 0.58) var(--progress-angle) 360deg
-  );
-  content: "";
-  pointer-events: none;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
 }
 
 .bubble-view::after {
@@ -102,6 +78,37 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.4);
   content: "";
   pointer-events: none;
+}
+
+.capsule-ring {
+  position: absolute;
+  z-index: 2;
+  inset: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.capsule-ring rect {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.capsule-ring-track {
+  stroke: rgba(4, 10, 12, 0.64);
+  stroke-width: 2.5;
+}
+
+.capsule-ring-value {
+  stroke: color-mix(in srgb, var(--risk) 90%, #ffffff 8%);
+  stroke-width: 2.5;
+  stroke-dasharray: 100;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: stroke-dashoffset 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bubble-view:active {

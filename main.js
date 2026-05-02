@@ -1,4 +1,4 @@
-const { app } = require('electron');
+const { app, powerMonitor } = require('electron');
 const {
   applyAutoLaunch,
   configureAppIdentity,
@@ -7,7 +7,7 @@ const {
 } = require('./src/main/app-lifecycle');
 const { initLogger, logError, logInfo } = require('./src/main/logger');
 const { normalizeSettings, readSettings, writeSettings, updateSettings } = require('./src/main/settings');
-const { startDataService, stopDataService } = require('./src/main/data-service');
+const { registerSystemRefreshHandlers, startDataService, stopDataService } = require('./src/main/data-service');
 const {
   createWindows,
   registerDisplayRecoveryHandlers,
@@ -52,6 +52,7 @@ app.whenReady()
     setContextMenuHandler(() => showBubbleContextMenu(setAlwaysOnTop));
     buildTray(setAlwaysOnTop);
     await startDataService(settings);
+    registerSystemRefreshHandlers(powerMonitor);
     logInfo('app:ready');
 
     app.on('activate', () => {

@@ -3,10 +3,13 @@ import type { ApiError, ApifoxModel, DataState, Settings } from '../types';
 import { formatTime, usageSummary } from '../utils';
 
 const api = window.floatingApi;
+const defaultFreshness: DataState['freshness'] = { ageMs: null, stale: false, expired: false };
 
 const defaultSettings: Settings = {
   hasToken: false,
   tokenSource: 'none',
+  tokenStorage: 'none',
+  schemaVersion: 0,
   refreshSeconds: 60,
   compact: true,
   alwaysOnTop: true,
@@ -18,6 +21,7 @@ export function useCodexData() {
   const [settings, setSettings] = createSignal<Settings>(defaultSettings);
   const [data, setData] = createSignal<ApifoxModel | null>(null);
   const [lastFetchedAt, setLastFetchedAt] = createSignal<string | null>(null);
+  const [freshness, setFreshness] = createSignal<DataState['freshness']>(defaultFreshness);
   const [loading, setLoading] = createSignal(false);
   const [alert, setAlert] = createSignal<{ message: string; tone: 'warn' | 'danger' } | null>(null);
   const [toast, setToast] = createSignal('');
@@ -32,7 +36,7 @@ export function useCodexData() {
   const subtitle = createMemo(() => {
     if (loading()) return '正在刷新';
     if (alert()) return data() ? '数据可能已过期' : '刷新失败';
-    if (cached()) return lastFetchedAt() ? `缓存 ${formatTime(lastFetchedAt() || undefined)}` : '缓存数据';
+    if (cached()) return lastFetchedAt() ? `缓存 ${freshnessLabel() || formatTime(lastFetchedAt() || undefined)}` : '缓存数据';
     return lastFetchedAt() ? `已更新 ${formatTime(lastFetchedAt() || undefined)}` : '等待刷新';
   });
   const statusTone = createMemo(() => {
@@ -73,10 +77,20 @@ export function useCodexData() {
     return `网络不可用，${time}`;
   }
 
+  function freshnessLabel(value = freshness()) {
+    if (!Number.isFinite(value.ageMs ?? NaN)) return '';
+    const minutes = Math.max(1, Math.round((value.ageMs || 0) / 60000));
+    if (minutes < 60) return `${minutes} 分钟前`;
+    const hours = Math.max(1, Math.round(minutes / 60));
+    if (hours < 24) return `${hours} 小时前`;
+    return `${Math.max(1, Math.round(hours / 24))} 天前`;
+  }
+
   function applyDataState(next: DataState, options: { notifyErrors?: boolean } = {}) {
     setLoading(Boolean(next.loading));
     setData(next.data);
     setLastFetchedAt(next.fetchedAt);
+    setFreshness(next.freshness || defaultFreshness);
     setCached(Boolean(next.cached));
 
     if (next.error) {
@@ -90,7 +104,9 @@ export function useCodexData() {
 
     if (next.cached) {
       const message = next.warning?.message || '网络不可用';
-      setAlert({ message: `正在显示缓存数据，${message}`, tone: 'warn' });
+      const age = freshnessLabel(next.freshness || defaultFreshness);
+      const prefix = age ? `正在显示 ${age} 的缓存数据` : '正在显示缓存数据';
+      setAlert({ message: `${prefix}，${message}`, tone: next.freshness?.expired ? 'danger' : 'warn' });
       if (options.notifyErrors) {
         notify('已显示上次成功数据');
       }
@@ -137,6 +153,7 @@ export function useCodexData() {
     statusTone,
     healthLabel,
     subtitle,
+    freshness,
     loading,
     alert,
     toast,

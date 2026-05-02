@@ -1,6 +1,7 @@
 const { Menu, Tray, nativeImage, shell } = require('electron');
 const { assetPath } = require('./assets');
 const { refreshData } = require('./data-service');
+const { copyDiagnostics } = require('./diagnostics');
 const { logInfo, logsDirectory } = require('./logger');
 const { readSettings, settingsDirectory } = require('./settings');
 const {
@@ -37,6 +38,10 @@ function openSettingsDirectory() {
   void shell.openPath(settingsDirectory());
 }
 
+function copyDiagnosticsToClipboard() {
+  void copyDiagnostics();
+}
+
 function buildContextMenuTemplate(setAlwaysOnTop) {
   return [
     {
@@ -68,6 +73,10 @@ function buildContextMenuTemplate(setAlwaysOnTop) {
     {
       label: '打开日志目录',
       click: openLogs
+    },
+    {
+      label: '复制诊断信息',
+      click: copyDiagnosticsToClipboard
     },
     { type: 'separator' },
     {
@@ -142,6 +151,10 @@ async function refreshTrayMenu(setAlwaysOnTop) {
       {
         label: '打开配置目录',
         click: openSettingsDirectory
+      },
+      {
+        label: '复制诊断信息',
+        click: copyDiagnosticsToClipboard
       },
       { type: 'separator' },
       {

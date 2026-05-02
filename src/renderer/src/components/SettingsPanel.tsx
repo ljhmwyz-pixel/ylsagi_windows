@@ -14,6 +14,7 @@ export function SettingsPanel(props: {
     launchAtLogin: boolean
   ) => void;
   onClearToken: () => void;
+  onCopyDiagnostics: () => void;
 }) {
   let tokenInput!: HTMLInputElement;
   let secondsInput!: HTMLInputElement;
@@ -60,7 +61,9 @@ export function SettingsPanel(props: {
         {props.settings.tokenSource === 'env'
           ? 'Token 来自环境变量'
           : props.settings.tokenSource === 'saved'
-            ? 'Token 已保存'
+            ? props.settings.tokenStorage === 'safeStorage'
+              ? 'Token 已加密保存在本机'
+              : 'Token 已保存（当前系统未启用加密）'
             : 'Token 未配置'}
       </div>
       <div class="maintenance-actions">
@@ -72,6 +75,9 @@ export function SettingsPanel(props: {
         </button>
         <button class="secondary-button" onClick={() => window.floatingApi.openSettingsDir()}>
           配置目录
+        </button>
+        <button class="secondary-button" onClick={props.onCopyDiagnostics}>
+          复制诊断
         </button>
       </div>
       <div class="panel-actions">

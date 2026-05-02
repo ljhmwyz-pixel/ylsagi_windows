@@ -375,7 +375,7 @@
 
 .quick-stats div {
   min-width: 0;
-  padding: 10px 10px;
+  padding: 10px;
   border: 1px solid rgba(255, 255, 255, 0.085);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.035);
@@ -532,7 +532,7 @@
 
 .maintenance-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 10px;
 }
@@ -603,7 +603,7 @@
   transform: translateY(0);
 }
 
-.panel-shell.is-loading .icon-button[title="刷新"] svg {
+.panel-shell.is-loading .window-actions .icon-button:nth-child(2) svg {
   animation: spin 800ms linear infinite;
 }
 

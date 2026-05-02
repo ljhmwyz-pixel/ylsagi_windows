@@ -87,6 +87,11 @@ export function PanelApp() {
     store.notify('已清除保存的 Token');
   }
 
+  async function copyDiagnostics() {
+    await api.copyDiagnostics();
+    store.notify('诊断信息已复制');
+  }
+
   return (
     <main
       class={`panel-shell anchor-${layout().side} risk-${store.worstRisk()} ${visible() ? 'is-visible' : ''} ${store.loading() ? 'is-loading' : ''}`}
@@ -170,6 +175,7 @@ export function PanelApp() {
           onClose={() => setSettingsOpen(false)}
           onSave={saveSettings}
           onClearToken={clearToken}
+          onCopyDiagnostics={copyDiagnostics}
         />
 
         <div class={`toast ${store.toast() ? 'show' : ''}`} aria-live="polite">

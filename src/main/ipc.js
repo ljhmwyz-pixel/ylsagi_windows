@@ -1,6 +1,7 @@
 const { ipcMain, shell } = require('electron');
 const { applyAutoLaunch } = require('./app-lifecycle');
 const { publicSettings, refreshData, scheduleRefresh, stateSnapshot } = require('./data-service');
+const { copyDiagnostics } = require('./diagnostics');
 const { logsDirectory } = require('./logger');
 const { readSettings, settingsDirectory, updateSettings } = require('./settings');
 const {
@@ -137,6 +138,8 @@ function registerIpc(refreshTrayMenu) {
     await shell.openPath(settingsDirectory());
     return { ok: true };
   });
+
+  ipcMain.handle('app:copy-diagnostics', copyDiagnostics);
 
   ipcMain.handle('window:reset-placement', async () => {
     return resetBubblePlacement();

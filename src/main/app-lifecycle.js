@@ -3,6 +3,7 @@ const path = require('node:path');
 const { logError, logInfo, logWarn, formatUnknownError } = require('./logger');
 
 const USER_DATA_DIR = 'Codex 用量悬浮窗';
+const loggedPermissionDenials = new Set();
 
 function configureProcessGuards() {
   process.on('uncaughtException', (error) => {
@@ -34,12 +35,12 @@ function isAllowedNavigationUrl(url) {
 
 function configureRendererSecurity() {
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-    logWarn('security:permission-denied', { permission });
+    logPermissionDeniedOnce('request', permission);
     callback(false);
   });
 
   session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
-    logWarn('security:permission-check-denied', { permission });
+    logPermissionDeniedOnce('check', permission);
     return false;
   });
 
@@ -55,6 +56,13 @@ function configureRendererSecurity() {
       logWarn('security:navigation-denied', { url });
     });
   });
+}
+
+function logPermissionDeniedOnce(scope, permission) {
+  const key = `${scope}:${permission}`;
+  if (loggedPermissionDenials.has(key)) return;
+  loggedPermissionDenials.add(key);
+  logWarn(`security:permission-${scope}-denied`, { permission });
 }
 
 function applyAutoLaunch(enabled) {

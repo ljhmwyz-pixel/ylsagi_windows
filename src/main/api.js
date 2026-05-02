@@ -1,4 +1,4 @@
-const { API_URL, TOKEN_ENV_NAMES } = require('./constants');
+const { API_MAX_ATTEMPTS, API_RETRY_DELAY_MS, API_TIMEOUT_MS, API_URL, TOKEN_ENV_NAMES } = require('./constants');
 const { readSettings } = require('./settings');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -33,47 +33,119 @@ async function getToken() {
   return typeof settings.token === 'string' ? settings.token.trim().replace(/^Bearer\s+/i, '') : '';
 }
 
-async function fetchInfo() {
-  const token = await getToken();
-  if (!token) {
-    const error = new Error('请先配置 Bearer Token');
-    error.code = 'NO_TOKEN';
-    throw error;
-  }
+function makeError(message, code, status, body) {
+  const error = new Error(message);
+  if (code) error.code = code;
+  if (status) error.status = status;
+  if (body !== undefined) error.body = body;
+  return error;
+}
 
-  const response = await fetch(API_URL, {
-    method: 'GET',
-    headers: {
-      Accept: '*/*',
-      Authorization: `Bearer ${token}`,
-      'Cache-Control': 'no-cache',
-      'User-Agent': `ylsagi-codex-monitor/${APP_VERSION}`
-    }
-  });
-
-  const bodyText = await response.text();
-  let body;
+function parseBodyText(bodyText) {
   try {
-    body = bodyText ? JSON.parse(bodyText) : null;
+    return bodyText ? JSON.parse(bodyText) : null;
   } catch {
-    body = bodyText;
+    return bodyText;
   }
+}
+
+function responseMessage(body, fallback) {
+  return typeof body === 'object' && body && typeof body.msg === 'string' && body.msg.trim()
+    ? body.msg
+    : fallback;
+}
+
+function shouldRetry(error) {
+  if (error?.code === 'REQUEST_TIMEOUT') return true;
+  if (Number(error?.status) >= 500) return true;
+  return !error?.status && error?.code !== 'NO_TOKEN' && error?.code !== 'API_ERROR' && error?.code !== 'BAD_RESPONSE';
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError' || controller.signal.aborted) {
+      throw makeError(`接口请求超时（${Math.round(timeoutMs / 1000)} 秒）`, 'REQUEST_TIMEOUT');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function requestInfo(token, timeoutMs) {
+  const response = await fetchWithTimeout(
+    API_URL,
+    {
+      method: 'GET',
+      headers: {
+        Accept: '*/*',
+        Authorization: `Bearer ${token}`,
+        'Cache-Control': 'no-cache',
+        'User-Agent': `ylsagi-codex-monitor/${APP_VERSION}`
+      }
+    },
+    timeoutMs
+  );
+
+  const body = parseBodyText(await response.text());
 
   if (!response.ok) {
-    const message =
-      typeof body === 'object' && body && typeof body.msg === 'string'
-        ? body.msg
-        : `接口请求失败：HTTP ${response.status}`;
-    const error = new Error(message);
-    error.status = response.status;
-    error.body = body;
-    throw error;
+    throw makeError(responseMessage(body, `接口请求失败：HTTP ${response.status}`), 'HTTP_ERROR', response.status, body);
+  }
+
+  if (!body || typeof body !== 'object') {
+    throw makeError('接口返回格式异常', 'BAD_RESPONSE', null, body);
+  }
+
+  if (Number(body.code) !== 0 && !body.state) {
+    throw makeError(responseMessage(body, '接口返回业务错误'), 'API_ERROR', null, body);
   }
 
   return body;
 }
 
+async function fetchInfo(options = {}) {
+  const token = await getToken();
+  if (!token) {
+    throw makeError('请先配置 Bearer Token', 'NO_TOKEN');
+  }
+
+  const timeoutMs = Math.max(1, Number(options.timeoutMs) || API_TIMEOUT_MS);
+  const attempts = Math.max(1, Number(options.attempts) || API_MAX_ATTEMPTS);
+  const retryDelayMs = Math.max(0, Number(options.retryDelayMs) || API_RETRY_DELAY_MS);
+  let lastError;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await requestInfo(token, timeoutMs);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts || !shouldRetry(error)) {
+        throw error;
+      }
+      await delay(retryDelayMs);
+    }
+  }
+
+  throw lastError;
+}
+
 module.exports = {
   envToken,
-  fetchInfo
+  fetchInfo,
+  parseBodyText
 };

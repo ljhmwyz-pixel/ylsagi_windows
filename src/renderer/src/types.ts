@@ -78,6 +78,8 @@ export interface UserPackgeUsage {
 export interface Settings {
   hasToken: boolean;
   tokenSource: 'env' | 'saved' | 'none';
+  tokenStorage: 'env' | 'safeStorage' | 'plain' | 'unavailable' | 'none';
+  schemaVersion: number;
   refreshSeconds: number;
   compact: boolean;
   alwaysOnTop: boolean;
@@ -95,6 +97,11 @@ export interface DataState {
   loading: boolean;
   data: ApifoxModel | null;
   fetchedAt: string | null;
+  freshness: {
+    ageMs: number | null;
+    stale: boolean;
+    expired: boolean;
+  };
   cached: boolean;
   error: ApiError | null;
   warning: ApiError | null;
@@ -119,6 +126,7 @@ export interface FloatingApi {
   showBubbleMenu(): Promise<{ ok: boolean }>;
   openLogs(): Promise<{ ok: boolean }>;
   openSettingsDir(): Promise<{ ok: boolean }>;
+  copyDiagnostics(): Promise<{ ok: boolean }>;
   resetPlacement(): Promise<{ ok: boolean }>;
   onOpenSettings(callback: () => void): () => void;
   onSettingsChanged(callback: () => void): () => void;

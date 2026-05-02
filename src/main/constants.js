@@ -1,4 +1,9 @@
 const API_URL = 'https://code.ylsagi.com/codex/info';
+const API_TIMEOUT_MS = 12000;
+const API_RETRY_DELAY_MS = 450;
+const API_MAX_ATTEMPTS = 2;
+const DATA_STALE_WARN_MS = 15 * 60 * 1000;
+const DATA_STALE_DANGER_MS = 60 * 60 * 1000;
 const TOKEN_ENV_NAMES = ['YLS_Codex_TOKEN', 'YLS_CODEX_TOKEN', 'CODEX_INFO_TOKEN'];
 const BUBBLE_SIZE = { width: 190, height: 60 };
 const PANEL_SIZE = { width: 432, height: 560 };
@@ -12,6 +17,11 @@ const BUBBLE_VISIBLE_RATIO = 0.42;
 
 module.exports = {
   API_URL,
+  API_TIMEOUT_MS,
+  API_RETRY_DELAY_MS,
+  API_MAX_ATTEMPTS,
+  DATA_STALE_WARN_MS,
+  DATA_STALE_DANGER_MS,
   TOKEN_ENV_NAMES,
   BUBBLE_SIZE,
   PANEL_SIZE,
