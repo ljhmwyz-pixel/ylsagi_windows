@@ -49,52 +49,19 @@ function setPanelLightDismiss(value) {
   panelLightDismiss = value !== false;
 }
 
-function circleShapeRects(size, inset = 4) {
-  const width = Math.round(size.width);
-  const height = Math.round(size.height);
-  const radius = Math.max(1, Math.min(width, height) / 2 - inset);
-  const centerX = width / 2;
-  const centerY = height / 2;
-  const top = Math.max(0, Math.floor(centerY - radius));
-  const bottom = Math.min(height, Math.ceil(centerY + radius));
-  const rects = [];
-
-  for (let y = top; y < bottom; y += 1) {
-    const dy = y + 0.5 - centerY;
-    const halfWidth = Math.sqrt(Math.max(0, radius * radius - dy * dy));
-    const x = Math.max(0, Math.floor(centerX - halfWidth));
-    const right = Math.min(width, Math.ceil(centerX + halfWidth));
-    if (right > x) {
-      rects.push({ x, y, width: right - x, height: 1 });
-    }
-  }
-
-  return rects;
-}
-
-function applyBubbleWindowShape() {
-  if (!bubbleWindow || bubbleWindow.isDestroyed() || typeof bubbleWindow.setShape !== 'function') {
-    return;
-  }
-
-  try {
-    bubbleWindow.setShape(circleShapeRects(BUBBLE_SIZE));
-  } catch (error) {
-    logWarn('window:bubble-shape-failed', error);
-  }
-}
-
 function makeWindow(options) {
+  const transparent = options.transparent !== false;
   const win = new BrowserWindow({
     frame: false,
-    transparent: true,
+    transparent,
     resizable: false,
     maximizable: false,
     minimizable: false,
     alwaysOnTop: options.alwaysOnTop,
     skipTaskbar: true,
+    focusable: options.focusable !== false,
     hasShadow: options.hasShadow !== false,
-    backgroundColor: '#00000000',
+    backgroundColor: options.backgroundColor ?? (transparent ? '#00000000' : '#0b0f10'),
     paintWhenInitiallyHidden: true,
     show: options.show,
     width: options.width,
@@ -163,10 +130,12 @@ async function createWindows(settings) {
     ...bubbleBounds,
     ...BUBBLE_SIZE,
     alwaysOnTop,
+    transparent: true,
+    backgroundColor: '#00000000',
+    focusable: false,
     hasShadow: false,
     show: true
   });
-  applyBubbleWindowShape();
   setAlwaysOnTopForWindows(alwaysOnTop);
   await loadRenderer(bubbleWindow, 'bubble');
 
@@ -400,7 +369,7 @@ function showPanel() {
   panelState = 'showing';
   const next = panelBoundsForBubble(bubbleWindow.getBounds(), preferredPanelHeight);
   panelWindow.setBounds(next.bounds, false);
-  panelWindow.show();
+  panelWindow.showInactive();
   sendPanelLayout(next.layout);
   panelWindow.webContents.send('panel-visibility', true);
   panelWindow.focus();

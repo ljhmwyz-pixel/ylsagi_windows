@@ -3,8 +3,8 @@
 ## 必跑验证
 
 ```powershell
-npm install
-npm run verify
+pnpm install
+pnpm run verify
 ```
 
 ## 手动验收
@@ -23,7 +23,7 @@ npm run verify
 ## 打包
 
 ```powershell
-npm run pack
+pnpm run pack
 ```
 
 如果 `electron-builder` 在本机长时间卡住，优先检查网络和 electron-builder 缓存目录。当前代码层验证通过，但最终安装包仍需要在稳定的构建环境里完成一次完整打包验证。

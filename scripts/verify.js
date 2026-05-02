@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
+const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
 function run(label, command, args) {
   console.log(`\n> ${label}`);
@@ -34,7 +35,7 @@ for (const file of jsFiles(path.join(root, 'src', 'main'))) {
   run(path.relative(root, file), 'node', ['--check', file]);
 }
 
-run('TypeScript', 'npx', ['tsc', '--noEmit']);
-run('Vite production build', 'npm', ['run', 'build']);
+run('TypeScript', pnpmCommand, ['exec', 'tsc', '--noEmit']);
+run('Vite production build', pnpmCommand, ['run', 'build']);
 
 console.log('\nVerification passed.');

@@ -1,23 +1,27 @@
 {
-  "name": "card-ui-floating-window",
+  "name": "ylsagi-codex-monitor",
   "version": "1.0.0",
-  "description": "Windows floating quota monitor for codex info API.",
+  "description": "Windows floating quota monitor for Codex API.",
   "main": "main.js",
   "private": true,
+  "packageManager": "pnpm@10.30.3",
+  "author": "ylsagi",
   "scripts": {
     "start": "node scripts/dev.js",
     "dev": "node scripts/dev.js",
     "verify": "node scripts/verify.js",
     "build": "vite build",
     "electron": "node scripts/start-electron.js",
-    "pack": "npm run build && electron-builder --win portable",
-    "dist": "npm run build && electron-builder --win nsis"
+    "pack": "pnpm run build && electron-builder --win portable",
+    "dist": "pnpm run build && electron-builder --win nsis",
+    "typecheck": "tsc --noEmit"
   },
   "build": {
-    "appId": "com.ylsagi.codex.quota.floating",
-    "productName": "Codex 用量悬浮窗",
+    "appId": "com.ylsagi.codex.monitor",
+    "productName": "Codex Monitor",
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "asar": true,
+    "compression": "maximum",
     "files": [
       "main.js",
       "preload.js",
@@ -32,25 +36,43 @@
     "win": {
       "icon": "assets/logo2.png",
       "target": [
-        "portable",
-        "nsis"
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
       ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/logo2.png",
+      "uninstallerIcon": "assets/logo2.png",
+      "installerHeaderIcon": "assets/logo2.png"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.${ext}"
     }
   },
   "devDependencies": {
-    "electron": "^31.7.7",
-    "electron-builder": "^24.13.3",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.10",
-    "vite-plugin-solid": "^2.11.12"
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "vite-plugin-solid": "^2.11.0"
   },
   "dependencies": {
-    "solid-js": "^1.9.12"
+    "solid-js": "^1.9.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
   }
 }

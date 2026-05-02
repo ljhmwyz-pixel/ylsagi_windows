@@ -4,56 +4,16 @@
   height: 100vh;
   display: grid;
   place-items: center;
-  border-radius: 0;
+  overflow: visible;
   background: transparent;
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bubble-shell::after {
-  position: absolute;
-  inset: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  content: "";
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.9);
-  transition:
-    opacity 160ms ease,
-    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 180ms ease;
-}
-
-.bubble-shell.dock-preview {
-  transform: scale(0.92);
-}
-
-.bubble-shell.dock-preview::after {
-  border-color: color-mix(in srgb, var(--risk) 72%, white 12%);
-  opacity: 1;
-  transform: scale(1);
-}
-
-.bubble-shell.dock-left {
-  transform: translateX(-4px) scale(0.94);
-}
-
-.bubble-shell.dock-right {
-  transform: translateX(4px) scale(0.94);
-}
-
-.bubble-shell.dock-top {
-  transform: translateY(-4px) scale(0.94);
-}
-
-.bubble-shell.dock-bottom {
-  transform: translateY(4px) scale(0.94);
 }
 
 .bubble-view {
+  position: relative;
   display: grid;
-  width: 84px;
-  height: 84px;
+  width: 88px;
+  height: 88px;
+  padding: 0;
   place-items: center;
   border: 0;
   border-radius: 999px;
@@ -69,68 +29,49 @@
 }
 
 .bubble-view:focus-visible {
-  outline: 2px solid var(--risk);
-  outline-offset: -5px;
-  border-radius: 999px;
+  outline: 2px solid color-mix(in srgb, var(--risk) 58%, white 14%);
+  outline-offset: -9px;
 }
 
-.bubble-ring {
-  --ring: 0%;
-  display: grid;
-  width: 82px;
-  height: 82px;
-  place-items: center;
-  border-radius: 999px;
-  background:
-    conic-gradient(var(--risk) var(--ring), rgba(255, 255, 255, 0.12) 0),
-    linear-gradient(145deg, rgba(42, 48, 59, 0.98), rgba(9, 12, 17, 0.98));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+.bubble-canvas {
+  display: block;
+  width: 88px;
+  height: 88px;
+  pointer-events: none;
+  transform: translateZ(0);
+  transform-origin: center;
+  transition:
+    filter 160ms ease,
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
-.bubble-ring:hover {
-  transform: scale(1.02);
+.bubble-view:hover .bubble-canvas {
+  filter: brightness(1.06);
+  transform: translateZ(0) scale(1.025);
 }
 
-.bubble-view:active .bubble-ring {
-  transform: scale(0.98);
+.bubble-view:active .bubble-canvas {
+  filter: brightness(0.98);
+  transform: translateZ(0) scale(0.975);
 }
 
-.bubble-core {
-  display: grid;
-  grid-template-rows: 15px 22px 13px;
-  width: 64px;
-  height: 64px;
-  place-items: center;
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(24, 28, 36, 0.98), rgba(13, 16, 22, 0.98));
-  text-align: center;
-  box-shadow:
-    0 0 0 3px rgba(16, 19, 26, 0.98),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+.bubble-shell.dock-preview .bubble-canvas {
+  transform: translateZ(0) scale(0.955);
 }
 
-.bubble-core span {
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 14px;
+.bubble-shell.dock-left .bubble-canvas {
+  transform: translate3d(-4px, 0, 0) scale(0.955);
 }
 
-.bubble-core strong {
-  overflow: hidden;
-  max-width: 54px;
-  margin-top: -2px;
-  font-size: 17px;
-  line-height: 22px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.bubble-shell.dock-right .bubble-canvas {
+  transform: translate3d(4px, 0, 0) scale(0.955);
 }
 
-.bubble-core small {
-  color: var(--risk);
-  font-size: 11px;
-  line-height: 13px;
+.bubble-shell.dock-top .bubble-canvas {
+  transform: translate3d(0, -4px, 0) scale(0.955);
+}
+
+.bubble-shell.dock-bottom .bubble-canvas {
+  transform: translate3d(0, 4px, 0) scale(0.955);
 }

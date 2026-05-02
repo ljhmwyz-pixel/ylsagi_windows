@@ -1,6 +1,7 @@
 import { createSignal, onCleanup, onMount } from 'solid-js';
+import { BubbleCanvas } from '../components/BubbleCanvas';
 import type { DockPreview } from '../types';
-import { formatNumber } from '../utils';
+import { formatCompactNumber } from '../utils';
 import { useCodexData } from '../hooks/useCodexData';
 
 const api = window.floatingApi;
@@ -20,8 +21,11 @@ export function BubbleApp() {
   let moveFrame = 0;
   const [dockPreview, setDockPreview] = createSignal<DockPreview>({ active: false, edge: null });
 
-  const ring = () => `${store.today().percent}%`;
+  const usedPercent = () => Math.min(100, Math.max(0, store.today().percent));
   const edgeClass = () => (dockPreview().active && dockPreview().edge ? `dock-${dockPreview().edge}` : '');
+  const remaining = () => formatCompactNumber(store.today().usage.remaining_quota);
+  const buttonLabel = () =>
+    `Codex 用量：今日剩余 ${remaining()}，已用 ${store.today().percentLabel}，状态 ${store.healthLabel()}`;
 
   onMount(() => {
     const unsubscribe = api.onDockPreview((preview) => {
@@ -143,19 +147,21 @@ export function BubbleApp() {
       <button
         class="bubble-view"
         type="button"
+        tabindex="-1"
         title="点击打开面板，拖动移动"
+        aria-label={buttonLabel()}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
       >
-        <div class="bubble-ring" style={{ '--ring': ring() }}>
-          <div class="bubble-core">
-            <span>今日</span>
-            <strong>{formatNumber(store.today().usage.remaining_quota)}</strong>
-            <small>{store.today().percentLabel}</small>
-          </div>
-        </div>
+        <BubbleCanvas
+          remaining={remaining()}
+          percent={usedPercent()}
+          percentLabel={store.today().percentLabel}
+          risk={store.today().risk}
+          status={store.statusTone()}
+        />
       </button>
     </main>
   );

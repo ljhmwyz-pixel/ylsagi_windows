@@ -10,6 +10,22 @@ export function formatNumber(value: unknown) {
   }).format(number);
 }
 
+export function formatCompactNumber(value: unknown) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return '0';
+
+  if (Math.abs(number) < 10000) {
+    return new Intl.NumberFormat('zh-CN', {
+      maximumFractionDigits: Math.abs(number) >= 100 ? 0 : 1
+    }).format(number);
+  }
+
+  return new Intl.NumberFormat('zh-CN', {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(number);
+}
+
 export function formatTime(value?: string | Date) {
   const date = value ? new Date(value) : new Date();
   if (Number.isNaN(date.getTime())) return '-';

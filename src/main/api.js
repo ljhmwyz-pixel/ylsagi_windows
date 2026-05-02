@@ -1,5 +1,19 @@
 const { API_URL, TOKEN_ENV_NAMES } = require('./constants');
 const { readSettings } = require('./settings');
+const path = require('node:path');
+const fs = require('node:fs');
+
+function getAppVersion() {
+  try {
+    const pkgPath = path.join(__dirname, '..', '..', 'package.json');
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    return pkg.version || '1.0.0';
+  } catch {
+    return '1.0.0';
+  }
+}
+
+const APP_VERSION = getAppVersion();
 
 function envToken() {
   for (const name of TOKEN_ENV_NAMES) {
@@ -33,7 +47,7 @@ async function fetchInfo() {
       Accept: '*/*',
       Authorization: `Bearer ${token}`,
       'Cache-Control': 'no-cache',
-      'User-Agent': 'card-ui-floating-window/0.5.0'
+      'User-Agent': `ylsagi-codex-monitor/${APP_VERSION}`
     }
   });
 

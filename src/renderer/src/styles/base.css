@@ -1,15 +1,15 @@
 :root {
   color-scheme: dark;
-  --bg: rgba(17, 19, 23, 0.94);
-  --panel: rgba(255, 255, 255, 0.055);
-  --line: rgba(255, 255, 255, 0.11);
+  --bg: rgba(14, 17, 19, 0.95);
+  --panel: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.12);
   --text: #f5f7fa;
-  --muted: #9aa4af;
-  --ok: #43d5c8;
-  --ok-2: #7ce06f;
+  --muted: #9ca7a7;
+  --ok: #43d6b8;
+  --ok-2: #8bdc65;
   --warn: #e4b85c;
   --danger: #ff7b72;
-  --accent: #57a8ff;
+  --accent: #8bb8ff;
   --shadow: rgba(0, 0, 0, 0.36);
   --risk: var(--ok);
   --risk-soft: rgba(94, 215, 198, 0.13);
@@ -85,8 +85,8 @@ button {
 }
 
 .icon-button:hover {
-  border-color: rgba(255, 255, 255, 0.13);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.085);
 }
 
 .icon-button:active {
