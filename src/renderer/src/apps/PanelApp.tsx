@@ -6,7 +6,7 @@ import { SettingsPanel } from '../components/SettingsPanel';
 import { UsageCard } from '../components/UsageCard';
 import { useCodexData } from '../hooks/useCodexData';
 import type { PanelLayout } from '../types';
-import { formatNumber, packageLabel } from '../utils';
+import { formatCompactNumber, formatNumber, packageLabel } from '../utils';
 
 const api = window.floatingApi;
 
@@ -97,6 +97,7 @@ export function PanelApp() {
       class={`panel-shell anchor-${layout().side} risk-${store.worstRisk()} ${visible() ? 'is-visible' : ''} ${store.loading() ? 'is-loading' : ''}`}
       style={{ '--arrow-y': `${layout().arrowY}px` }}
     >
+      <div class="panel-scan-line" aria-hidden="true" />
       <section class="panel-content" ref={contentRef}>
         <header class="titlebar">
           <div class="drag-zone">
@@ -153,7 +154,7 @@ export function PanelApp() {
           </div>
           <div>
             <span>今日 Tokens</span>
-            <strong>{formatNumber(store.today().usage.total_tokens)}</strong>
+            <strong>{formatCompactNumber(store.today().usage.total_tokens)}</strong>
           </div>
           <div>
             <span>本周请求</span>

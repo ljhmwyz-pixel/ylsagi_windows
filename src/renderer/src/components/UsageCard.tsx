@@ -1,4 +1,4 @@
-import { formatNumber, usageSummary } from '../utils';
+import { formatCompactNumber, formatNumber, usageSummary } from '../utils';
 
 export function UsageCard(props: { title: string; usage: ReturnType<typeof usageSummary>; primary?: boolean }) {
   const value = () => props.usage.usage;
@@ -20,7 +20,7 @@ export function UsageCard(props: { title: string; usage: ReturnType<typeof usage
       </div>
       <div class="meta-row">
         <span>{formatNumber(value().request_count)} 次请求</span>
-        <span>{formatNumber(value().total_tokens)} tokens</span>
+        <span>{formatCompactNumber(value().total_tokens)} tokens</span>
       </div>
     </article>
   );
