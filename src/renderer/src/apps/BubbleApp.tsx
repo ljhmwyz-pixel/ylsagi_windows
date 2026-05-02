@@ -1,7 +1,6 @@
 import { createSignal, onCleanup, onMount } from 'solid-js';
-import { BubbleCanvas } from '../components/BubbleCanvas';
 import type { DockPreview } from '../types';
-import { formatCompactNumber } from '../utils';
+import { formatCompactNumber, formatNumber } from '../utils';
 import { useCodexData } from '../hooks/useCodexData';
 
 const api = window.floatingApi;
@@ -22,10 +21,20 @@ export function BubbleApp() {
   const [dockPreview, setDockPreview] = createSignal<DockPreview>({ active: false, edge: null });
 
   const usedPercent = () => Math.min(100, Math.max(0, store.today().percent));
+  const progressAngle = () => `${usedPercent() * 3.6}deg`;
   const edgeClass = () => (dockPreview().active && dockPreview().edge ? `dock-${dockPreview().edge}` : '');
   const remaining = () => formatCompactNumber(store.today().usage.remaining_quota);
+  const requestCount = () => formatNumber(store.today().usage.request_count);
+  const statusLabel = () => {
+    const tone = store.statusTone();
+    if (tone === 'loading') return '同步中';
+    if (tone === 'cached') return '缓存';
+    if (tone === 'danger') return '高风险';
+    if (tone === 'warn') return '注意';
+    return '正常';
+  };
   const buttonLabel = () =>
-    `Codex 用量：今日剩余 ${remaining()}，已用 ${store.today().percentLabel}，状态 ${store.healthLabel()}`;
+    `今日剩余 ${remaining()}，已用 ${store.today().percentLabel}，状态 ${store.healthLabel()}`;
 
   onMount(() => {
     const unsubscribe = api.onDockPreview((preview) => {
@@ -148,20 +157,27 @@ export function BubbleApp() {
         class="bubble-view"
         type="button"
         tabindex="-1"
-        title="点击打开面板，拖动移动"
         aria-label={buttonLabel()}
+        style={`--progress-angle: ${progressAngle()};`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
       >
-        <BubbleCanvas
-          remaining={remaining()}
-          percent={usedPercent()}
-          percentLabel={store.today().percentLabel}
-          risk={store.today().risk}
-          status={store.statusTone()}
-        />
+        <span class="capsule-mark" aria-hidden="true">
+          <span />
+        </span>
+        <span class="capsule-main">
+          <span class="capsule-label">
+            <span class="capsule-dot" aria-hidden="true" />
+            {statusLabel()}
+          </span>
+          <strong>{remaining()}</strong>
+        </span>
+        <span class="capsule-side">
+          <strong>{store.today().percentLabel}</strong>
+          <span>{requestCount()} 请求</span>
+        </span>
       </button>
     </main>
   );

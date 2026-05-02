@@ -18,6 +18,8 @@ const {
 const { logError, logWarn } = require('./logger');
 const { updateSettings } = require('./settings');
 
+const BUBBLE_SURFACE_COLOR = '#00000000';
+
 let bubbleWindow;
 let panelWindow;
 let saveBubbleTimer;
@@ -66,6 +68,7 @@ function makeWindow(options) {
     show: options.show,
     width: options.width,
     height: options.height,
+    title: options.title ?? '',
     minWidth: options.minWidth ?? options.width,
     minHeight: options.minHeight ?? options.height,
     maxWidth: options.maxWidth ?? options.width,
@@ -94,6 +97,60 @@ function makeWindow(options) {
   });
 
   return win;
+}
+
+function keepNativeTitleBlank(win) {
+  win.setTitle('');
+  win.on('page-title-updated', (event) => {
+    event.preventDefault();
+    win.setTitle('');
+  });
+}
+
+function roundedRectShape(width, height, radius) {
+  const rects = [];
+  const r = Math.min(radius, Math.floor(width / 2), Math.floor(height / 2));
+  let current = null;
+
+  for (let y = 0; y < height; y += 1) {
+    let inset = 0;
+    if (y < r) {
+      const dy = r - y - 0.5;
+      inset = Math.ceil(r - Math.sqrt(Math.max(0, r * r - dy * dy)));
+    } else if (y >= height - r) {
+      const dy = y - (height - r) + 0.5;
+      inset = Math.ceil(r - Math.sqrt(Math.max(0, r * r - dy * dy)));
+    }
+
+    const rect = { x: inset, y, width: width - inset * 2, height: 1 };
+    if (current && current.x === rect.x && current.width === rect.width) {
+      current.height += 1;
+    } else {
+      current = rect;
+      rects.push(rect);
+    }
+  }
+
+  return rects;
+}
+
+function applyBubbleSurfaceShape() {
+  if (!bubbleWindow || bubbleWindow.isDestroyed()) return;
+  bubbleWindow.setBackgroundColor(BUBBLE_SURFACE_COLOR);
+  if (typeof bubbleWindow.setShape === 'function') {
+    bubbleWindow.setShape(
+      roundedRectShape(BUBBLE_SIZE.width, BUBBLE_SIZE.height, Math.floor(BUBBLE_SIZE.height / 2))
+    );
+  }
+}
+
+function keepBubbleSurfaceStable(win) {
+  const refresh = () => applyBubbleSurfaceShape();
+  refresh();
+  win.on('show', refresh);
+  win.on('blur', refresh);
+  win.on('focus', refresh);
+  win.webContents.on('did-finish-load', refresh);
 }
 
 async function loadRenderer(win, mode) {
@@ -131,13 +188,17 @@ async function createWindows(settings) {
     ...BUBBLE_SIZE,
     alwaysOnTop,
     transparent: true,
-    backgroundColor: '#00000000',
+    backgroundColor: BUBBLE_SURFACE_COLOR,
     focusable: false,
     hasShadow: false,
-    show: true
+    title: '',
+    show: false
   });
+  keepNativeTitleBlank(bubbleWindow);
+  keepBubbleSurfaceStable(bubbleWindow);
   setAlwaysOnTopForWindows(alwaysOnTop);
   await loadRenderer(bubbleWindow, 'bubble');
+  bubbleWindow.showInactive();
 
   const initialPanelBounds = panelBoundsForBubble(bubbleWindow.getBounds(), preferredPanelHeight).bounds;
   panelWindow = makeWindow({

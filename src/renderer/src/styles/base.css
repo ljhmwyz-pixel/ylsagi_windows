@@ -1,15 +1,15 @@
 :root {
   color-scheme: dark;
-  --bg: rgba(14, 17, 19, 0.95);
-  --panel: rgba(255, 255, 255, 0.06);
-  --line: rgba(255, 255, 255, 0.12);
+  --bg: rgba(12, 15, 16, 0.97);
+  --panel: rgba(255, 255, 255, 0.052);
+  --line: rgba(255, 255, 255, 0.105);
   --text: #f5f7fa;
-  --muted: #9ca7a7;
+  --muted: #9aa6a6;
   --ok: #43d6b8;
   --ok-2: #8bdc65;
   --warn: #e4b85c;
   --danger: #ff7b72;
-  --accent: #8bb8ff;
+  --accent: #9bb7ff;
   --shadow: rgba(0, 0, 0, 0.36);
   --risk: var(--ok);
   --risk-soft: rgba(94, 215, 198, 0.13);

@@ -1,5 +1,8 @@
 const { app, session } = require('electron');
+const path = require('node:path');
 const { logError, logInfo, logWarn, formatUnknownError } = require('./logger');
+
+const USER_DATA_DIR = 'Codex 用量悬浮窗';
 
 function configureProcessGuards() {
   process.on('uncaughtException', (error) => {
@@ -16,7 +19,8 @@ function configureProcessGuards() {
 }
 
 function configureAppIdentity() {
-  app.setName('Codex 用量悬浮窗');
+  app.setName('Codex');
+  app.setPath('userData', path.join(app.getPath('appData'), USER_DATA_DIR));
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.ylsagi.codex.quota.floating');
   }
