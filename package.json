@@ -22,6 +22,8 @@
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "asar": true,
     "compression": "maximum",
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
     "files": [
       "main.js",
       "preload.js",
@@ -33,8 +35,12 @@
     "directories": {
       "output": "dist"
     },
+    "electronDist": "node_modules/electron/dist",
+    "electronDownload": {
+      "cache": "node_modules/electron/dist"
+    },
     "win": {
-      "icon": "assets/logo2.png",
+      "signAndEditExecutable": false,
       "target": [
         {
           "target": "portable",
@@ -50,10 +56,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "installerIcon": "assets/logo2.png",
-      "uninstallerIcon": "assets/logo2.png",
-      "installerHeaderIcon": "assets/logo2.png"
+      "createStartMenuShortcut": true
     },
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"
