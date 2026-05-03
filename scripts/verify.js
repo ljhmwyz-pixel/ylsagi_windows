@@ -38,5 +38,6 @@ for (const file of jsFiles(path.join(root, 'src', 'main'))) {
 run('Unit tests', 'node', ['scripts/test-main.js']);
 run('TypeScript', pnpmCommand, ['exec', 'tsc', '--noEmit']);
 run('Vite production build', pnpmCommand, ['run', 'build']);
+run('Electron smoke tests', 'node', ['scripts/smoke-electron.js']);
 
 console.log('\nVerification passed.');

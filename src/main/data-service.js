@@ -5,7 +5,10 @@ const { logError, logInfo, logWarn } = require('./logger');
 const { normalizeSettings, readSettings } = require('./settings');
 const { getBubbleWindow, getPanelWindow } = require('./windows');
 
+/** @typedef {'idle' | 'loading' | 'fresh' | 'cached' | 'stale-cache' | 'error' | 'no-token'} DataPhase */
+
 const defaultState = {
+  phase: 'idle',
   loading: false,
   data: null,
   fetchedAt: null,
@@ -87,6 +90,7 @@ async function hydrateFromCache() {
 
   state = {
     ...state,
+    phase: 'cached',
     data: cached.data,
     fetchedAt: cached.fetchedAt || new Date().toISOString(),
     freshness: freshnessForFetchedAt(cached.fetchedAt),
@@ -102,7 +106,7 @@ async function hydrateFromCache() {
 async function refreshData() {
   if (activeFetch) return activeFetch;
 
-  state = { ...state, loading: true, error: null };
+  state = { ...state, phase: 'loading', loading: true, error: null };
   emitState();
 
   activeFetch = (async () => {
@@ -110,6 +114,7 @@ async function refreshData() {
       const data = await fetchInfo();
       const cached = await writeInfoCache(data);
       state = {
+        phase: 'fresh',
         loading: false,
         data: cached.data,
         fetchedAt: cached.fetchedAt,
@@ -125,6 +130,7 @@ async function refreshData() {
 
       if (cached?.data) {
         state = {
+          phase: 'stale-cache',
           loading: false,
           data: cached.data,
           fetchedAt: cached.fetchedAt || new Date().toISOString(),
@@ -137,6 +143,7 @@ async function refreshData() {
       } else {
         state = {
           ...state,
+          phase: normalizedError.code === 'NO_TOKEN' ? 'no-token' : 'error',
           loading: false,
           error: normalizedError,
           warning: null

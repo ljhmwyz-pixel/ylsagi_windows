@@ -21,7 +21,7 @@ function configureProcessGuards() {
 
 function configureAppIdentity() {
   app.setName('Codex');
-  app.setPath('userData', path.join(app.getPath('appData'), USER_DATA_DIR));
+  app.setPath('userData', process.env.YLSAGI_TEST_USER_DATA || path.join(app.getPath('appData'), USER_DATA_DIR));
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.ylsagi.codex.quota.floating');
   }

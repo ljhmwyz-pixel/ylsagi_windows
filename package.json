@@ -1,6 +1,6 @@
 {
   "name": "ylsagi-codex-monitor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Windows floating quota monitor for Codex API.",
   "main": "main.js",
   "private": true,
@@ -12,6 +12,7 @@
     "verify": "node scripts/verify.js",
     "build": "vite build",
     "electron": "node scripts/start-electron.js",
+    "smoke": "pnpm run build && node scripts/smoke-electron.js",
     "pack": "pnpm run build && electron-builder --win portable",
     "dist": "pnpm run build && electron-builder --win nsis",
     "typecheck": "tsc --noEmit"
@@ -44,11 +45,15 @@
       "target": [
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
@@ -63,6 +68,7 @@
     }
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "electron": "^35.0.0",
     "electron-builder": "^25.1.8",
     "typescript": "^5.7.3",
@@ -70,6 +76,7 @@
     "vite-plugin-solid": "^2.11.0"
   },
   "dependencies": {
+    "@kobalte/core": "^0.13.11",
     "solid-js": "^1.9.5"
   },
   "pnpm": {

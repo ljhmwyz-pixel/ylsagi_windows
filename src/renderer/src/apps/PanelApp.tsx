@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import logoUrl from '../assets/logo2.png';
-import { Icon } from '../components/Icon';
+import { IconButton } from '../components/IconButton';
 import { PackageList } from '../components/PackageList';
 import { SettingsPanel } from '../components/SettingsPanel';
 import { UsageCard } from '../components/UsageCard';
@@ -17,12 +17,15 @@ export function PanelApp() {
   const [layout, setLayout] = createSignal<PanelLayout>({ side: 'left', arrowY: 52 });
   let contentRef!: HTMLElement;
   let resizeFrame = 0;
+  let lastPanelHeight = 0;
 
   function requestPanelResize() {
     window.cancelAnimationFrame(resizeFrame);
     resizeFrame = window.requestAnimationFrame(() => {
       if (!contentRef) return;
       const nextHeight = Math.ceil(contentRef.scrollHeight);
+      if (Math.abs(nextHeight - lastPanelHeight) < 2) return;
+      lastPanelHeight = nextHeight;
       void api.resizePanelToContent(nextHeight);
     });
   }
@@ -75,7 +78,7 @@ export function PanelApp() {
       panelLightDismiss,
       launchAtLogin
     });
-    const next = await store.loadSettings();
+    await store.loadSettings();
     setSettingsOpen(false);
     store.notify('设置已保存');
     await store.fetchAndRender();
@@ -96,6 +99,7 @@ export function PanelApp() {
     <main
       class={`panel-shell anchor-${layout().side} risk-${store.worstRisk()} ${visible() ? 'is-visible' : ''} ${store.loading() ? 'is-loading' : ''}`}
       style={{ '--arrow-y': `${layout().arrowY}px` }}
+      aria-busy={store.loading()}
     >
       <div class="panel-scan-line" aria-hidden="true" />
       <section class="panel-content" ref={contentRef}>
@@ -111,15 +115,14 @@ export function PanelApp() {
             </div>
           </div>
           <div class="window-actions">
-            <button class="icon-button" title="设置" aria-label="设置" onClick={() => setSettingsOpen(true)}>
-              <Icon name="settings" />
-            </button>
-            <button class="icon-button" title="刷新" aria-label="刷新" onClick={store.fetchAndRender}>
-              <Icon name="refresh" />
-            </button>
-            <button class="icon-button" title="关闭面板" aria-label="关闭面板" onClick={() => api.hidePanel()}>
-              <Icon name="close" />
-            </button>
+            <IconButton label="设置" icon="settings" onClick={() => setSettingsOpen(true)} />
+            <IconButton
+              label="刷新"
+              icon="refresh"
+              disabled={store.loading()}
+              onClick={() => void store.fetchAndRender()}
+            />
+            <IconButton label="关闭面板" icon="close" onClick={() => void api.hidePanel()} />
           </div>
         </header>
 
@@ -134,7 +137,7 @@ export function PanelApp() {
         <section class="identity-strip">
           <div class="user-line">
             <span id="email">{store.info()?.user?.email || store.info()?.user?.uid || '未知用户'}</span>
-            <span class="level-pill">{packageLabel(store.info()?.package?.package_level)}</span>
+            <span class="level-pill">{packageLabel(store.info()?.packageInfo?.package_level)}</span>
           </div>
           <div class="balance-line">
             <span>余额</span>
@@ -165,9 +168,9 @@ export function PanelApp() {
         <section class="package-section">
           <div class="section-head">
             <span>订阅包</span>
-            <span>{store.info()?.toDay || '-'}</span>
+            <span>{store.info()?.dayLabel || '-'}</span>
           </div>
-          <PackageList packages={store.info()?.package?.packages || []} />
+          <PackageList packages={store.info()?.packageInfo?.packages || []} />
         </section>
 
         <SettingsPanel

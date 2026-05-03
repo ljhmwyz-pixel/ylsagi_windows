@@ -1,5 +1,6 @@
 const { API_MAX_ATTEMPTS, API_RETRY_DELAY_MS, API_TIMEOUT_MS, API_URL, TOKEN_ENV_NAMES } = require('./constants');
 const { readSettings } = require('./settings');
+const { normalizeTokenInput } = require('./validators');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -19,7 +20,7 @@ function envToken() {
   for (const name of TOKEN_ENV_NAMES) {
     const value = process.env[name];
     if (value && value.trim()) {
-      return value.trim().replace(/^Bearer\s+/i, '');
+      return normalizeTokenInput(value);
     }
   }
   return '';
@@ -30,7 +31,7 @@ async function getToken() {
   if (fromEnv) return fromEnv;
 
   const settings = await readSettings();
-  return typeof settings.token === 'string' ? settings.token.trim().replace(/^Bearer\s+/i, '') : '';
+  return normalizeTokenInput(settings.token);
 }
 
 function makeError(message, code, status, body) {

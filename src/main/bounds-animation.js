@@ -26,6 +26,7 @@ function animateBounds(win, targetBounds, options = {}) {
   stopBoundsAnimation(win);
 
   const startedAt = Date.now();
+  let lastApplied = from;
   const timer = setInterval(() => {
     if (!win || win.isDestroyed()) {
       clearInterval(timer);
@@ -42,11 +43,27 @@ function animateBounds(win, targetBounds, options = {}) {
       height: Math.round(from.height + (to.height - from.height) * eased)
     };
 
-    win.setBounds(next, false);
+    if (
+      next.x !== lastApplied.x ||
+      next.y !== lastApplied.y ||
+      next.width !== lastApplied.width ||
+      next.height !== lastApplied.height
+    ) {
+      win.setBounds(next, false);
+      lastApplied = next;
+    }
+
     if (progress >= 1) {
       clearInterval(timer);
       activeAnimations.delete(win);
-      win.setBounds(to, false);
+      if (
+        to.x !== lastApplied.x ||
+        to.y !== lastApplied.y ||
+        to.width !== lastApplied.width ||
+        to.height !== lastApplied.height
+      ) {
+        win.setBounds(to, false);
+      }
       if (typeof options.onDone === 'function') {
         options.onDone();
       }

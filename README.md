@@ -38,7 +38,13 @@ pnpm start
 pnpm run verify
 ```
 
-该命令会执行主进程语法检查、Preload 语法检查、TypeScript 检查和生产构建。
+该命令会执行主进程语法检查、Preload 语法检查、主进程单测、TypeScript 检查、生产构建和 Electron 冒烟测试。
+
+也可以只跑真实窗口冒烟测试：
+
+```powershell
+pnpm run smoke
+```
 
 ## 构建
 

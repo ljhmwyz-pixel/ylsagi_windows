@@ -1,4 +1,4 @@
-import type { PackageElement, UserPackgeUsage } from './types';
+import type { CodexStateView, PackageElement, State, UserPackgeUsage } from './types';
 
 export type RiskLevel = 'ok' | 'warn' | 'danger';
 
@@ -92,6 +92,17 @@ export function usageSummary(usage?: Partial<UserPackgeUsage>) {
     percent,
     risk: riskLevel(percent),
     percentLabel: `${formatNumber(percent)}%`
+  };
+}
+
+export function normalizeCodexState(state?: State | null): CodexStateView | null {
+  if (!state) return null;
+  return {
+    ...state,
+    dayLabel: state.toDay || '-',
+    packageInfo: state.package,
+    todayUsage: usageDefaults(state.userPackgeUsage),
+    weekUsage: usageDefaults(state.userPackgeUsage_week)
   };
 }
 

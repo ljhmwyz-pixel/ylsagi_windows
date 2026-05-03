@@ -15,6 +15,13 @@ export interface State {
   [property: string]: unknown;
 }
 
+export interface CodexStateView extends State {
+  dayLabel: string;
+  packageInfo: StatePackage;
+  todayUsage: UserPackgeUsage;
+  weekUsage: UserPackgeUsage;
+}
+
 export interface StatePackage {
   cache: boolean;
   package_level: number;
@@ -94,6 +101,7 @@ export interface ApiError {
 }
 
 export interface DataState {
+  phase: 'idle' | 'loading' | 'fresh' | 'cached' | 'stale-cache' | 'error' | 'no-token';
   loading: boolean;
   data: ApifoxModel | null;
   fetchedAt: string | null;

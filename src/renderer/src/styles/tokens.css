@@ -1,0 +1,36 @@
+:root {
+  color-scheme: dark;
+
+  --bg: rgba(8, 10, 14, 0.97);
+  --bg-panel: rgba(13, 16, 22, 0.96);
+  --surface: rgba(24, 29, 38, 0.82);
+  --surface-strong: rgba(31, 38, 49, 0.92);
+  --surface-muted: rgba(255, 255, 255, 0.045);
+  --line: rgba(148, 163, 184, 0.16);
+  --line-strong: rgba(148, 163, 184, 0.28);
+  --text: #eef4ff;
+  --muted: #9aa6b8;
+  --muted-soft: #738095;
+
+  --ok: #2dd4bf;
+  --ok-glow: rgba(45, 212, 191, 0.22);
+  --warn: #f59e0b;
+  --warn-glow: rgba(245, 158, 11, 0.24);
+  --danger: #fb7185;
+  --danger-glow: rgba(251, 113, 133, 0.24);
+  --accent: #60a5fa;
+  --accent-glow: rgba(96, 165, 250, 0.22);
+
+  --risk: var(--ok);
+  --risk-glow: var(--ok-glow);
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-panel: 0 20px 56px rgba(0, 0, 0, 0.48);
+  --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.26);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}

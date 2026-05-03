@@ -5,6 +5,12 @@ const { copyDiagnostics } = require('./diagnostics');
 const { logsDirectory } = require('./logger');
 const { readSettings, settingsDirectory, updateSettings } = require('./settings');
 const {
+  parseBoolean,
+  parseContentHeight,
+  parseDelta,
+  parseSettingsPayload
+} = require('./validators');
+const {
   beginBubbleDrag,
   hidePanel,
   hideDockedBubble,
@@ -31,14 +37,15 @@ function registerIpc(refreshTrayMenu) {
   });
 
   ipcMain.handle('settings:save', async (_event, nextSettings) => {
+    const payload = parseSettingsPayload(nextSettings);
     const next = await updateSettings((settings) => {
-      settings.refreshSeconds = Math.min(3600, Math.max(15, Number(nextSettings.refreshSeconds) || 60));
-      settings.alwaysOnTop = nextSettings.alwaysOnTop !== false;
-      settings.panelLightDismiss = nextSettings.panelLightDismiss !== false;
-      settings.launchAtLogin = Boolean(nextSettings.launchAtLogin);
+      settings.refreshSeconds = payload.refreshSeconds;
+      settings.alwaysOnTop = payload.alwaysOnTop;
+      settings.panelLightDismiss = payload.panelLightDismiss;
+      settings.launchAtLogin = payload.launchAtLogin;
 
-      if (typeof nextSettings.token === 'string' && nextSettings.token.trim()) {
-        settings.token = nextSettings.token.trim().replace(/^Bearer\s+/i, '');
+      if (payload.token) {
+        settings.token = payload.token;
       }
 
       return settings;
@@ -76,11 +83,12 @@ function registerIpc(refreshTrayMenu) {
   });
 
   ipcMain.handle('window:set-always-on-top', async (_event, value) => {
+    const alwaysOnTop = parseBoolean(value);
     await updateSettings((settings) => {
-      settings.alwaysOnTop = Boolean(value);
+      settings.alwaysOnTop = alwaysOnTop;
       return settings;
     });
-    setAlwaysOnTopForWindows(Boolean(value));
+    setAlwaysOnTopForWindows(alwaysOnTop);
     await refreshTrayMenu();
     notifySettingsChanged();
     return { ok: true };
@@ -97,11 +105,12 @@ function registerIpc(refreshTrayMenu) {
   });
 
   ipcMain.handle('window:resize-panel-to-content', (_event, height) => {
-    return resizePanelToContent(height);
+    return resizePanelToContent(parseContentHeight(height));
   });
 
   ipcMain.handle('window:move-bubble-by', (_event, delta) => {
-    moveBubbleBy(Number(delta?.dx) || 0, Number(delta?.dy) || 0);
+    const next = parseDelta(delta);
+    moveBubbleBy(next.dx, next.dy);
     return { ok: true };
   });
 

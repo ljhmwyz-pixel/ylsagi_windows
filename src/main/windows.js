@@ -32,6 +32,7 @@ let dockedEdge = null;
 let dockedHiddenBounds = null;
 let contextMenuHandler = null;
 let dragSession = null;
+let panelFollowTimer = null;
 let lastDockPreview = { active: false, edge: null };
 let displayRecoveryTimer = null;
 
@@ -286,6 +287,7 @@ function recoverWindowPositions() {
 
 async function resetBubblePlacement() {
   if (!bubbleWindow || bubbleWindow.isDestroyed()) return { ok: false };
+  clearPanelFollowTimer();
   dockedEdge = null;
   dockedHiddenBounds = null;
   dragSession = null;
@@ -318,6 +320,19 @@ function sendPanelLayout(layout) {
   panelWindow.webContents.send('panel-layout', layout);
 }
 
+function clearPanelFollowTimer() {
+  clearTimeout(panelFollowTimer);
+  panelFollowTimer = null;
+}
+
+function schedulePanelSyncDuringDrag() {
+  if (!isPanelOpen() || panelFollowTimer) return;
+  panelFollowTimer = setTimeout(() => {
+    panelFollowTimer = null;
+    syncPanelToBubble(false);
+  }, 48);
+}
+
 function syncPanelToBubble(animated = false) {
   if (!panelWindow || !bubbleWindow || panelWindow.isDestroyed() || bubbleWindow.isDestroyed()) return;
   if (!isPanelOpen()) return;
@@ -328,6 +343,7 @@ function syncPanelToBubble(animated = false) {
 
 function beginBubbleDrag() {
   if (!bubbleWindow || bubbleWindow.isDestroyed()) return { ok: false };
+  clearPanelFollowTimer();
   stopBoundsAnimation(bubbleWindow);
   const current = bubbleWindow.getBounds();
   const wasDocked = Boolean(dockedEdge);
@@ -368,18 +384,20 @@ function moveBubbleBy(dx, dy) {
     dragSession.y = next.y;
   }
   bubbleWindow.setBounds(next, false);
-  syncPanelToBubble(false);
+  schedulePanelSyncDuringDrag();
   sendDockPreview(dockPreviewForBubble(next));
 }
 
 async function snapBubbleToEdge() {
   if (!bubbleWindow || bubbleWindow.isDestroyed()) return;
+  clearPanelFollowTimer();
   dragSession = null;
   sendDockPreview({ active: false, edge: null });
   const current = bubbleWindow.getBounds();
   if (!isNearAnyEdge(current)) {
     dockedEdge = null;
     dockedHiddenBounds = null;
+    syncPanelToBubble(false);
     await updateSettings((settings) => {
       settings.bubbleBounds = clampBubbleBounds(current);
       settings.bubbleDockedEdge = null;
@@ -458,6 +476,7 @@ function resizePanelToContent(height) {
 function hidePanel(reason = 'manual') {
   if (!panelWindow || panelWindow.isDestroyed()) return;
   if (panelState === 'hidden') return;
+  clearPanelFollowTimer();
   if (reason === 'blur') {
     lastPanelBlurHideAt = Date.now();
   }

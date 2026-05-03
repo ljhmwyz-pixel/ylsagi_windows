@@ -2,6 +2,7 @@ const { app, safeStorage } = require('electron');
 const path = require('node:path');
 const { BUBBLE_SIZE } = require('./constants');
 const { readJsonFile, writeJsonFileAtomic } = require('./file-store');
+const { normalizeTokenInput } = require('./validators');
 
 const SETTINGS_SCHEMA_VERSION = 2;
 
@@ -14,7 +15,7 @@ function settingsDirectory() {
 }
 
 function normalizeToken(value) {
-  return typeof value === 'string' ? value.trim().replace(/^Bearer\s+/i, '') : '';
+  return normalizeTokenInput(value);
 }
 
 function decryptToken(settings) {

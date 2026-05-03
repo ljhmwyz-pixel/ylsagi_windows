@@ -5,17 +5,6 @@ import { useCodexData } from '../hooks/useCodexData';
 
 const api = window.floatingApi;
 
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  size: number;
-}
-
 export function BubbleApp() {
   const store = useCodexData();
   let startX = 0;
@@ -29,16 +18,8 @@ export function BubbleApp() {
   let pendingDx = 0;
   let pendingDy = 0;
   let moveFrame = 0;
-  let particleId = 0;
-  let lastParticleTime = 0;
-  let velocityX = 0;
-  let velocityY = 0;
-  let lastMoveTime = 0;
 
   const [dockPreview, setDockPreview] = createSignal<DockPreview>({ active: false, edge: null });
-  const [isHovered, setIsHovered] = createSignal(false);
-  const [particles, setParticles] = createSignal<Particle[]>([]);
-  const [dragVelocity, setDragVelocity] = createSignal({ x: 0, y: 0 });
   const [isDraggingState, setIsDraggingState] = createSignal(false);
 
   const usedPercent = () => Math.min(100, Math.max(0, store.today().percent));
@@ -70,44 +51,6 @@ export function BubbleApp() {
     });
   });
 
-  function spawnParticles(x: number, y: number, count: number, velocityMag: number) {
-    const now = Date.now();
-    if (now - lastParticleTime < 16) return;
-    lastParticleTime = now;
-
-    const newParticles: Particle[] = [];
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * velocityMag * 0.5 + velocityMag * 0.3;
-      newParticles.push({
-        id: particleId++,
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1,
-        maxLife: 30 + Math.random() * 20,
-        size: 2 + Math.random() * 3
-      });
-    }
-    setParticles((prev) => [...prev.slice(-30), ...newParticles]);
-  }
-
-  function updateParticles() {
-    setParticles((prev) =>
-      prev
-        .map((p) => ({
-          ...p,
-          x: p.x + p.vx,
-          y: p.y + p.vy,
-          vx: p.vx * 0.95,
-          vy: p.vy * 0.95,
-          life: p.life - 1 / p.maxLife
-        }))
-        .filter((p) => p.life > 0)
-    );
-  }
-
   function flushMove() {
     moveFrame = 0;
     const dx = pendingDx;
@@ -116,27 +59,7 @@ export function BubbleApp() {
     pendingDy = 0;
     if (dx || dy) {
       void api.moveBy({ dx, dy });
-      const now = Date.now();
-      const dt = now - lastMoveTime;
-      if (dt > 0) {
-        velocityX = dx / dt * 16;
-        velocityY = dy / dt * 16;
-        setDragVelocity({ x: velocityX, y: velocityY });
-      }
-      lastMoveTime = now;
-
-      const shellEl = document.querySelector('.bubble-shell');
-      if (shellEl) {
-        const rect = shellEl.getBoundingClientRect();
-        spawnParticles(
-          rect.left + rect.width / 2,
-          rect.top + rect.height / 2,
-          Math.min(Math.hypot(dx, dy) * 0.3, 3),
-          Math.hypot(dx, dy)
-        );
-      }
     }
-    requestAnimationFrame(updateParticles);
   }
 
   function queueMove(dx: number, dy: number) {
@@ -154,10 +77,8 @@ export function BubbleApp() {
     startY = event.screenY;
     lastX = event.screenX;
     lastY = event.screenY;
-    lastMoveTime = Date.now();
     dragging = false;
     setIsDraggingState(false);
-    setParticles([]);
     window.clearTimeout(leaveTimer);
     window.clearTimeout(hoverTimer);
     target.setPointerCapture(event.pointerId);
@@ -171,7 +92,7 @@ export function BubbleApp() {
     const dx = event.screenX - lastX;
     const dy = event.screenY - lastY;
 
-    if (!dragging && Math.hypot(totalDx, totalDy) > 4) {
+    if (!dragging && Math.hypot(totalDx, totalDy) > 6) {
       dragging = true;
       setIsDraggingState(true);
       void api.beginDrag();
@@ -191,6 +112,9 @@ export function BubbleApp() {
     pointerId = null;
 
     if (dragging) {
+      if (moveFrame) {
+        window.cancelAnimationFrame(moveFrame);
+      }
       flushMove();
       setTimeout(() => setIsDraggingState(false), 300);
       void api.snapBubble();
@@ -199,7 +123,6 @@ export function BubbleApp() {
     }
 
     dragging = false;
-    setDragVelocity({ x: 0, y: 0 });
   }
 
   function onPointerCancel(event: PointerEvent) {
@@ -207,12 +130,14 @@ export function BubbleApp() {
     pointerId = null;
     dragging = false;
     setIsDraggingState(false);
+    if (moveFrame) {
+      window.cancelAnimationFrame(moveFrame);
+    }
     flushMove();
     void api.snapBubble();
   }
 
   function onMouseEnter() {
-    setIsHovered(true);
     window.clearTimeout(leaveTimer);
     hoverTimer = window.setTimeout(() => {
       void api.revealDockedBubble();
@@ -220,7 +145,6 @@ export function BubbleApp() {
   }
 
   function onMouseLeave() {
-    setIsHovered(false);
     window.clearTimeout(hoverTimer);
     if (dragging || pointerId !== null) return;
     leaveTimer = window.setTimeout(() => {
@@ -240,21 +164,6 @@ export function BubbleApp() {
       onMouseLeave={onMouseLeave}
       onContextMenu={onContextMenu}
     >
-      <div class="particle-container" aria-hidden="true">
-        {particles().map((p) => (
-          <div
-            class="particle"
-            style={{
-              left: `${p.x}px`,
-              top: `${p.y}px`,
-              width: `${p.size}px`,
-              height: `${p.size}px`,
-              opacity: p.life,
-              transform: `scale(${p.life})`
-            }}
-          />
-        ))}
-      </div>
       <button
         class="bubble-view"
         type="button"

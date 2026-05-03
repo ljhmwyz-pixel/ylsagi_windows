@@ -299,6 +299,7 @@ function testDataFreshness() {
   );
   const now = new Date('2026-05-02T10:00:00.000Z').getTime();
 
+  assert.equal(dataService.stateSnapshot().phase, 'idle');
   assert.deepEqual(dataService.freshnessForFetchedAt(null, now), {
     ageMs: null,
     stale: false,
@@ -354,6 +355,35 @@ function testSystemRefreshHandlers() {
   assert.equal(powerMonitor.listenerCount('unlock-screen'), 0);
 }
 
+function testValidators() {
+  const validators = freshRequire(path.join(root, 'src', 'main', 'validators.js'));
+
+  assert.equal(validators.normalizeTokenInput('Bearer abc'), 'abc');
+  assert.equal(validators.normalizeTokenInput('  token  '), 'token');
+  assert.equal(validators.normalizeTokenInput(null), '');
+
+  assert.deepEqual(validators.parseSettingsPayload({
+    token: 'Bearer saved-token',
+    refreshSeconds: 2,
+    alwaysOnTop: false,
+    panelLightDismiss: false,
+    launchAtLogin: 1
+  }), {
+    token: 'saved-token',
+    refreshSeconds: 15,
+    alwaysOnTop: false,
+    panelLightDismiss: false,
+    launchAtLogin: true
+  });
+
+  assert.deepEqual(validators.parseDelta({ dx: 999999, dy: -999999 }), {
+    dx: 5000,
+    dy: -5000
+  });
+  assert.equal(validators.parseContentHeight('700'), 700);
+  assert.equal(validators.parseContentHeight('bad'), 1);
+}
+
 async function main() {
   testGeometry();
   await testSettingsEncryption();
@@ -362,6 +392,7 @@ async function main() {
   await testCacheStore();
   testDataFreshness();
   testSystemRefreshHandlers();
+  testValidators();
   console.log('Unit tests passed.');
 }
 

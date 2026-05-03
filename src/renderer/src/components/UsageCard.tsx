@@ -15,7 +15,14 @@ export function UsageCard(props: { title: string; usage: ReturnType<typeof usage
           已用 <b>{formatNumber(value().total_cost)}</b>
         </span>
       </div>
-      <div class="progress-track" aria-hidden="true">
+      <div
+        class="progress-track"
+        role="progressbar"
+        aria-label={`${props.title}已用比例`}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={props.usage.percent}
+      >
         <div class="progress-fill" style={{ width: `${props.usage.percent}%` }} />
       </div>
       <div class="meta-row">

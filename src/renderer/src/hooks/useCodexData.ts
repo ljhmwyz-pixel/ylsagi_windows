@@ -1,6 +1,6 @@
 import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import type { ApiError, ApifoxModel, DataState, Settings } from '../types';
-import { formatTime, usageSummary } from '../utils';
+import { formatTime, normalizeCodexState, usageSummary } from '../utils';
 
 const api = window.floatingApi;
 const defaultFreshness: DataState['freshness'] = { ageMs: null, stale: false, expired: false };
@@ -29,9 +29,9 @@ export function useCodexData() {
 
   let toastTimer: number | undefined;
 
-  const info = createMemo(() => data()?.state);
-  const today = createMemo(() => usageSummary(info()?.userPackgeUsage));
-  const week = createMemo(() => usageSummary(info()?.userPackgeUsage_week));
+  const info = createMemo(() => normalizeCodexState(data()?.state));
+  const today = createMemo(() => usageSummary(info()?.todayUsage));
+  const week = createMemo(() => usageSummary(info()?.weekUsage));
   const worstRisk = createMemo(() => (today().percent >= week().percent ? today().risk : week().risk));
   const subtitle = createMemo(() => {
     if (loading()) return '正在刷新';
